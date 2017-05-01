@@ -5,6 +5,10 @@ import settings
 
 
 def pushover(title, message, url_title, url, priority):
+    if settings.PUSHOVER_TOKEN is None or settings.PUSHOVER_USER is None:
+        print('Pushover token/user not configured')
+        return
+
     payload = {
         'token': settings.PUSHOVER_TOKEN,
         'user': settings.PUSHOVER_USER,
