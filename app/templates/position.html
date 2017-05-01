@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+	<title>Van Location</title>
+
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" integrity="sha512-07I2e+7D8p6he1SIM+1twR5TIrhUQn9+I6yjqD53JQjFiMf8EtC93ty0/5vJTZGF8aAocvHYNEDJajGdNx1IsQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js" integrity="sha512-A7vV8IFfih/D732iSSKi20u/ooOfj/AGehOKq0f4vLT1Zr2Y+RX7C+w8A1gaSasGtRUZpF/NZgzSAu4/Gc41Lg==" crossorigin=""></script>
+
+
+
+</head>
+<body>
+
+
+
+<div id="mapid" style="position: fixed; top: 0; bottom: 0; left: 0; right: 0;"></div>
+<script>
+
+        var lat = {{ position.latitude }};
+        var lon = {{ position.longitude }};
+	var map = L.map('mapid').setView([lat, lon], 13);
+
+	var osm = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		maxZoom: 19,
+		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+	});
+	osm.addTo(map);
+
+	var loc = L.marker([lat, lon]);
+	loc.addTo(map);
+
+	var trkPoints = [
+		{% for point in track %}
+		[{{point.latitude}}, {{point.longitude}}],
+		{% endfor %}
+	];
+	var trk = L.polyline(trkPoints, {color: 'blue'});
+	trk.addTo(map);
+
+</script>
+
+
+
+</body>
+</html>

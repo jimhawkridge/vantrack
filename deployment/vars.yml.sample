@@ -1,0 +1,7 @@
+---
+user: jim
+appuser: vt
+have_vimrc: no
+keys:
+  - "mysshkey"
+  - "myothersshkey"

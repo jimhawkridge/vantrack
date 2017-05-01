@@ -1,0 +1,138 @@
+---
+# ansible-playbook -i inventory setup.yml -u root
+
+- hosts:
+  - vts
+
+  vars_files:
+    - vars.yml
+
+  handlers:
+    - name: Reload iptables
+      service:
+        name=netfilter-persistent
+        state=restarted
+
+    - name: Reload nginx
+      service:
+        name=nginx
+        state=reloaded
+
+  tasks:
+    - name: Ensure the {{user}} user exists
+      user:
+        name={{user}}
+        shell=/bin/bash
+        groups=sudo
+      tags: account
+
+    - name: Deploy local key
+      authorized_key:
+        user={{user}}
+        key="{{ lookup('file', '/home/{{user}}/.ssh/id_rsa.pub') }}"
+      tags: account
+
+    - name: Deploy other ssh keys
+      authorized_key:
+        user={{user}}
+        key={{item}}
+      with_items: "{{keys}}"
+      tags: account
+
+    - name: Deploy vimrc
+      copy:
+        src=~/.vimrc
+        dest=/home/{{user}}/.vimrc
+      tags: account
+      when: have_vimrc
+
+    - name: Get required apt packages
+      apt:
+        name={{item}}
+        update_cache=yes
+        cache_valid_time=3600
+      with_items:
+        - python-pip
+        - postgresql
+        - postgresql-server-dev-9.4
+        - python-dev  # Needed to build psycopg2 for python2
+        - nginx
+        - tmux
+        - iptables-persistent
+        - netfilter-persistent
+
+    - name: Ensure required python packages for ansible are available (python 2 environment)
+      pip:
+        name={{item}}
+        executable=pip
+      with_items:
+        - psycopg2
+
+    - name: Ensure get-pip.py is available  # Jessie pip3 is broken somehow
+      get_url:
+        url=https://bootstrap.pypa.io/get-pip.py
+        dest=/root/get-pip.py
+      register: getpip
+
+    - name: Ensure pip3 is installed
+      command: /usr/bin/python3 /root/get-pip.py
+      when: getpip.changed
+
+    - name: Ensure the app user exists
+      user:
+        name={{appuser}}
+        shell=/bin/bash
+
+    - name: Give the app user the vimrc too
+      copy:
+        src=~/.vimrc
+        dest=/home/{{appuser}}/.vimrc
+      when: have_vimrc
+
+    - name: Ensure postgres user exists
+      postgresql_user:
+        name={{appuser}}
+      become: yes
+      become_user: postgres
+
+    - name: Ensure postgres database exists
+      postgresql_db:
+        name=vt
+        owner={{appuser}}
+      become: yes
+      become_user: postgres
+
+    - name: Ensure iptables dir existings
+      file:
+        path=/etc/iptables
+        state=directory
+      tags: fw
+
+    - name: Ensure firewall config is deployed
+      copy:
+        src=conf/rules.v4
+        dest=/etc/iptables/rules.v4
+      tags: fw
+      notify: Reload iptables
+
+    - name: Ensure default nginx conf is disabled
+      file:
+        path=/etc/nginx/sites-enabled/default
+        state=absent
+      tags: nginx
+      notify: Reload nginx
+
+    - name: Ensure my nginx config is installed
+      copy:
+        src=conf/nginx.conf
+        dest=/etc/nginx/sites-available/vt.conf
+      tags: nginx
+      notify: Reload nginx
+
+    - name: Ensure my nginx config is enabled
+      file:
+        state=link
+        src=/etc/nginx/sites-available/vt.conf
+        path=/etc/nginx/sites-enabled/vt.conf
+      tags: nginx
+      notify: Reload nginx

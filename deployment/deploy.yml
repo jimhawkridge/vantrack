@@ -1,0 +1,26 @@
+---
+# ansible-playbook -i inventory deploy.yml --sudo --ask-sudo-pass
+
+- hosts:
+  - vts
+
+  vars_files:
+    - vars.yml
+
+  tasks:
+
+    - name: Deploy app
+      copy:
+        src=../app
+        dest=/home/{{appuser}}
+        owner={{appuser}}
+
+    - name: Make app executable
+      file:
+        path=/home/{{appuser}}/app/server.py
+        mode=u+x
+
+    - name: Ensure required python packages are available
+      pip:
+        requirements=/home/{{appuser}}/app/requirements.txt
+        executable=/usr/local/bin/pip3
