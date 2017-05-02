@@ -20,16 +20,24 @@ def van_loc():
     except Position.DoesNotExist:
         return 'No data logged yet!'
     day_ago = datetime.now() - timedelta(hours=24)
-    track = (
+    positions = (
         Position
         .select()
         .where(Position.timestamp > day_ago)
         .order_by(Position.timestamp)
     )
+    tracks = []
+    last_timestamp = datetime(2001, 1, 1)
+    for position in positions:
+        if position.timestamp - last_timestamp > timedelta(minutes=1):
+            track = []
+            tracks.append(track)
+        last_timestamp = position.timestamp
+        track.append(position)
     return render_template(
         'position.html',
         position=last_posn,
-        track=track
+        tracks=tracks
     )
 
 

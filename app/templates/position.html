@@ -33,13 +33,17 @@
 	var loc = L.marker([lat, lon]);
 	loc.addTo(map);
 
-	var trkPoints = [
-		{% for point in track %}
-		[{{point.latitude}}, {{point.longitude}}],
+	var tracks = [
+		{% for track in tracks %}
+			[{% for point in track %}
+				[{{point.latitude}}, {{point.longitude}}],
+			{% endfor %}],
 		{% endfor %}
 	];
-	var trk = L.polyline(trkPoints, {color: 'blue'});
-	trk.addTo(map);
+	tracks.forEach(function(track) {
+		var trk = L.polyline(track, {color: 'blue'});
+		trk.addTo(map);
+	});
 
 </script>
 
