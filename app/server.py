@@ -81,9 +81,9 @@ class GP06(socketserver.StreamRequestHandler):
         differential = bool(course_status & 0x2000)
         gps_lock = bool(course_status & 0x1000)
         west = bool(course_status & 0x0800)
-        signed_longitude = longitude * -1 if west else 1
+        signed_longitude = longitude * (-1 if west else 1)
         north = bool(course_status & 0x0400)
-        signed_latitude = latitude * 1 if north else -1
+        signed_latitude = latitude * (1 if north else -1)
         EW = 'W' if west else 'E'
         NS = 'N' if north else 'N'
         course = course_status & 0x03ff
