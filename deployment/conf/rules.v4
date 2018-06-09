@@ -7,6 +7,7 @@
 -A INPUT -i eth0 -p tcp -m tcp --dport 22 -m state --state NEW,ESTABLISHED -j ACCEPT
 -A INPUT -i eth0 -p tcp -m tcp --dport 80 -m state --state NEW,ESTABLISHED -j ACCEPT
 -A INPUT -i eth0 -p tcp -m tcp --dport 6780 -m state --state NEW,ESTABLISHED -j ACCEPT
+-A INPUT -i eth0 -p udp -m multiport --dports 60001:60010 -m state --state NEW,ESTABLISHED -j ACCEPT
 -A INPUT -i lo -j ACCEPT
 COMMIT
 # Completed on Thu Apr 27 19:33:05 2017
