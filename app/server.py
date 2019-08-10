@@ -2,6 +2,7 @@
 
 from crcmod.predefined import Crc
 import socketserver
+import socket
 from struct import pack, unpack, error
 from datetime import datetime, timedelta
 from osm_shortlink import short_osm
@@ -9,6 +10,9 @@ from binascii import hexlify
 
 from models import initDB, Device, Position, connectDB, disconnectDB
 from notify import notify_position
+
+
+READ_TIMEOUT_SECS = 300
 
 
 class GPSServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
@@ -209,14 +213,19 @@ Language: {}
 
             self.handle_message_type(packet_type, body)
         except error as e:
-            print(e)
+            print('Error:', e)
             return
 
     def handle(self):
+        self.request.settimeout(READ_TIMEOUT_SECS)
         data = b''
         connectDB()
         while True:
-            buf = self.rfile.readline()
+            try:
+                buf = self.rfile.readline()
+            except socket.timeout as e:
+                print('Timed out')
+                break
             if not len(buf):
                 print('Disconnected')
                 break
