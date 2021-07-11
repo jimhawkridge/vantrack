@@ -1,2 +1,3 @@
-position.csv
-trk.gpx
+*.csv
+*.gpx
+*.sql

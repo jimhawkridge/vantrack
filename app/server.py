@@ -68,6 +68,7 @@ class GP06(socketserver.StreamRequestHandler):
         print('IMEA: {}'.format(self.imea))
 
         self.send_response(0x01, b'')
+        return False
 
     def location(self, t, data):
         (
@@ -145,6 +146,8 @@ Google: {}
             notify_position(signed_latitude, signed_longitude, self.imea)
             self.server.last_notified = dt
 
+        return False
+
 
     def heartbeat(self, t, data):
         terminfo, voltage, gsm_strength, alarm, language_code = unpack('!BBBBB', data)
@@ -185,6 +188,8 @@ Language: {}
             )
         )
 
+        return False
+
     def handle_message_type(self, t, data):
         handlers = {
             0x01: self.login,
@@ -192,7 +197,7 @@ Language: {}
             0x13: self.heartbeat,
         }
         handler = handlers.get(t, self.unknown_packet_type)
-        handler(t, data)
+        return handler(t, data)
 
     def process_message(self, data):
         try:
@@ -211,7 +216,7 @@ Language: {}
                 print('Checksum failure')
                 return
 
-            self.handle_message_type(packet_type, body)
+            return self.handle_message_type(packet_type, body)
         except error as e:
             print('Error:', e)
             return
@@ -231,7 +236,9 @@ Language: {}
                 break
             data += buf
             if data.endswith(b'\r\n'):
-                self.process_message(data.strip())
+                done = self.process_message(data.strip())
+                if done:
+                    break
                 data = b''
         disconnectDB()
 

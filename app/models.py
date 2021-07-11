@@ -5,6 +5,8 @@ from peewee import (
 
 db = PostgresqlDatabase('vt', user='vt')
 
+conncount = 0
+
 
 class VTModel(Model):
     class Meta:
@@ -34,8 +36,16 @@ def initDB():
 
 
 def connectDB():
+    print("Connecting to DB")
     db.connect()
+    global conncount
+    conncount += 1
+    print("ConnCount is", conncount)
 
 
 def disconnectDB():
-    db.close()
+    print('Disconnecting from DB')
+    print('Closing:', db.close())
+    global conncount
+    conncount -= 1
+    print("ConnCount is", conncount)
