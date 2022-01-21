@@ -1,6 +1,6 @@
 Flask==0.12.1
 crcmod==1.7
-ipython==6.0.0
+ipython==7.16.3
 peewee==2.9.2
 psycopg2==2.7.1
 requests==2.4.3
